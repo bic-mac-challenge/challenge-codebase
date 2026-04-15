@@ -45,6 +45,8 @@ We recommend the following public datasets if you wish to perform pretraining et
 
 - [AbdomenAtlas 1.0 Mini](https://huggingface.co/datasets/AbdomenAtlas/AbdomenAtlas1.0Mini) 5,195 abdominal CT studies with 9-organ segmentations. [citation](https://arxiv.org/abs/2305.09666)
 
+- [Merlin Abdominal CT Dataset](https://stanfordaimi.azurewebsites.net/datasets/60b9c7ff-877b-48ce-96c3-0194c8205c40) 25,494 abdominal CT studies with radiology reports. [citation](https://doi.org/10.1038/s41586-026-10181-8)
+
 ### MRI
 - [TotalSegmentator MRI](https://zenodo.org/records/14710732) 616 whole-body MRI studies. [citation](https://doi.org/10.1148/ryai.230024)
 
