@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-RUN pip install --no-cache-dir nibabel numpy scipy
+RUN pip install --no-cache-dir nibabel numpy scipy tqdm
 
 COPY pyproject.toml .
 COPY src/ src/
