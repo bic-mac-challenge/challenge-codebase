@@ -8,6 +8,7 @@
 
 ---
 ## Updates
+- May 15, 2018: NIfTI validation and leaderboards now live - see submission instructions at [https://www.codabench.org/competitions/12555](https://www.codabench.org/competitions/12555)
 - April 8, 2026 (13:00 GMT+2): [BUG FIX] A bug in the Carney HU-to-MU conversion formula has been fixed. Please make sure to run `docker pull ghcr.io/bic-mac-challenge/recon:latest` and `git pull` for updated recon and evaluation logic. The 8 ground truth PET train images have been updated on huggingface. 
 - April 7, 2026: [NEW DATA POLICY] The use of public datasets for pretraining and other use-cases is now allowed under certain conditions. Please see [docs/rules.md](docs/rules.md) for details. 
 ## Table of Contents
