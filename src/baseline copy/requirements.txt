@@ -1,0 +1,6 @@
+monai
+nibabel
+numpy
+tqdm
+pyyaml
+matplotlib
