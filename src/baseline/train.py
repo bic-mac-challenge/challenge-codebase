@@ -1,4 +1,8 @@
 import os
+# os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True" # fragmentation issues on dante. also reduced cache_rate to 0.1 to reduce memory footprint
+# https://docs.pytorch.org/docs/2.12/notes/cuda.html#environment-variables 
+# has to be before importing torch
+
 import torch
 import yaml
 import matplotlib.pyplot as plt
@@ -11,7 +15,6 @@ from unet import build_model
 
 
 torch.backends.cudnn.benchmark = True
-
 
 
 def load_config():
@@ -38,7 +41,7 @@ def main():
     train_dataset = CacheDataset(
         data=train_data,
         transform=train_transforms,
-        cache_rate=1.0, # Change this to reduce memory footprint
+        cache_rate=0.1, # Change this to reduce memory footprint
         num_workers=cfg["num_workers"],
     )
     loader = DataLoader(
@@ -108,7 +111,7 @@ def main():
             y    = batch["ct"].to(device)
             mask = batch["prediction_mask"].bool().to(device)
             y[~mask] = 0 # don't bother trying to predict the bed 
-            optimizer.zero_grad()
+            optimizer.zero_grad(set_to_none=True) # release old gradients from memory - dante
 
             with torch.amp.autocast("cuda"):
 
@@ -127,6 +130,13 @@ def main():
         avg_train_loss = epoch_loss / len(loader)
 
         scheduler.step()
+
+        # release gradient memory from batch - dante
+        optimizer.zero_grad(set_to_none=True) 
+        # delete tensors from training loop
+        del x, y, mask, pred, loss 
+        # clear cache to avoid fragmentation errors in validation
+        torch.cuda.empty_cache() 
 
         # validation
         model.eval()

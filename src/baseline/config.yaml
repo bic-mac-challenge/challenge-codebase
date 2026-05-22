@@ -1,9 +1,10 @@
-data_dir: /data/bic-mac-data/train #CHANGE to your dataset path
-num_workers: 2
-output_dir: outputs
+data_dir: /data/t/BIC-MAC-MICCAI2026/bic-mac-data/train #CHANGE to your dataset path
+num_workers: 1
+output_dir: /data/t/BIC-MAC-MICCAI2026/baseline_model/outputs
 
 epochs: 250
 learning_rate: 0.0003
+batch_size: 1
 
 patch_size: [192,192,192]
 train_num_samples: 2 #Number of patches to sample per train subject
