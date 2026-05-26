@@ -6,6 +6,7 @@ epochs: 250
 learning_rate: 0.0003
 batch_size: 1
 
-patch_size: [192,192,192]
+patch_size: [64,64,64]
+# patch_size: [192,192,192]
 train_num_samples: 2 #Number of patches to sample per train subject
 val_num_samples: 8 #Number of patches to sample per val subject

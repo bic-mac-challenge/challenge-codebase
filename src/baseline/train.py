@@ -192,4 +192,7 @@ def main():
 
 
 if __name__ == "__main__":
+    os.chdir(os.path.dirname(__file__))  # ensure relative paths work
+    print(os.getcwd())
+    print("training baseline model - PET only")
     main()
