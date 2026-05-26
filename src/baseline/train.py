@@ -22,6 +22,24 @@ def load_config():
         return yaml.safe_load(f)
 
 
+def load_log(log_path):
+    """Parse train_log.txt → (train_loss_history, val_loss_history, last_epoch).
+    Returns empty histories and -1 if the file does not exist."""
+    train_losses, val_losses = [], []
+    last_epoch = -1
+    if not os.path.exists(log_path):
+        return train_losses, val_losses, last_epoch
+    with open(log_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            epoch, t_loss, v_loss = line.split(",")
+            train_losses.append(float(t_loss))
+            val_losses.append(float(v_loss))
+            last_epoch = int(epoch)
+    return train_losses, val_losses, last_epoch
+
 
 def main():
 
@@ -35,13 +53,13 @@ def main():
     val_data, train_data = all_data[:2], all_data[2:]
 
     train_transforms = get_transforms(cfg["patch_size"], cfg["train_num_samples"])
-    val_transforms = get_transforms(cfg["patch_size"], cfg["val_num_samples"])
+    val_transforms   = get_transforms(cfg["patch_size"], cfg["val_num_samples"])
 
     print("Caching train dataset...")
     train_dataset = CacheDataset(
         data=train_data,
         transform=train_transforms,
-        cache_rate=0.1, # Change this to reduce memory footprint
+        cache_rate=0.1,
         num_workers=cfg["num_workers"],
     )
     loader = DataLoader(
@@ -50,7 +68,7 @@ def main():
         shuffle=True,
         num_workers=cfg["num_workers"],
         pin_memory=True,
-        persistent_workers=True
+        persistent_workers=True,
     )
 
     print("Caching val dataset...")
@@ -66,20 +84,20 @@ def main():
         shuffle=False,
         num_workers=cfg["num_workers"],
         pin_memory=True,
-        persistent_workers=True
+        persistent_workers=True,
     )
-    
+
     model = build_model().to(device)
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=cfg["learning_rate"],
-        weight_decay=1e-5
+        weight_decay=1e-5,
     )
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer,
-        T_max=cfg["epochs"]
+        T_max=cfg["epochs"],
     )
 
     scaler  = torch.amp.GradScaler("cuda")
@@ -87,22 +105,62 @@ def main():
 
     out = cfg["output_dir"]
     os.makedirs(f"{out}/checkpoints", exist_ok=True)
-    os.makedirs(f"{out}/logs", exist_ok=True)
-    os.makedirs(f"{out}/plots", exist_ok=True)
+    os.makedirs(f"{out}/logs",        exist_ok=True)
+    os.makedirs(f"{out}/plots",       exist_ok=True)
 
-    best_val_loss = float("inf")
+    # ------------------------------------------------------------------ #
+    #  Resume from last checkpoint if one exists                          #
+    # ------------------------------------------------------------------ #
+    last_ckpt_path = f"{out}/checkpoints/last_model.pth"
+    log_path       = f"{out}/logs/train_log.txt"
 
-    train_loss_history = []
-    val_loss_history = []
+    train_loss_history, val_loss_history, last_epoch = load_log(log_path)
+    start_epoch  = last_epoch + 1
+    best_val_loss = min(val_loss_history) if val_loss_history else float("inf")
 
-    print("Starting training...")
+    if os.path.exists(last_ckpt_path):
+        print(f"Resuming from checkpoint (epoch {last_epoch}) → {last_ckpt_path}")
+        ckpt = torch.load(last_ckpt_path, map_location=device)
 
-    for epoch in range(cfg["epochs"]):
+        # Support both old format (bare state_dict) and new format (dict)
+        if isinstance(ckpt, dict) and "model" in ckpt:
+            model.load_state_dict(ckpt["model"])
+            optimizer.load_state_dict(ckpt["optimizer"])
+            scheduler.load_state_dict(ckpt["scheduler"])
+            scaler.load_state_dict(ckpt["scaler"])
+            # Sanity-check the stored epoch matches the log
+            stored_epoch = ckpt.get("epoch", last_epoch)
+            if stored_epoch != last_epoch:
+                print(
+                    f"  Warning: checkpoint epoch ({stored_epoch}) differs from "
+                    f"log epoch ({last_epoch}). Using log epoch."
+                )
+        else:
+            # Legacy bare state_dict — load weights only
+            print("  (legacy checkpoint format — loading weights only)")
+            model.load_state_dict(ckpt)
+            # Fast-forward the scheduler to match elapsed epochs
+            for _ in range(start_epoch):
+                scheduler.step()
+    else:
+        print("No checkpoint found — starting from scratch.")
+
+    if start_epoch >= cfg["epochs"]:
+        print(
+            f"Training already complete ({start_epoch} epochs done, "
+            f"target is {cfg['epochs']}). Nothing to do."
+        )
+        return
+
+    print(f"Starting training from epoch {start_epoch} → {cfg['epochs'] - 1}")
+
+    # ------------------------------------------------------------------ #
+    #  Training loop                                                       #
+    # ------------------------------------------------------------------ #
+    for epoch in range(start_epoch, cfg["epochs"]):
 
         model.train()
-
         epoch_loss = 0
-
         pbar = tqdm(loader)
 
         for batch in pbar:
@@ -110,13 +168,12 @@ def main():
             x    = batch["input"].to(device)
             y    = batch["ct"].to(device)
             mask = batch["prediction_mask"].bool().to(device)
-            y[~mask] = 0 # don't bother trying to predict the bed 
-            optimizer.zero_grad(set_to_none=True) # release old gradients from memory - dante
+            y[~mask] = 0  # don't bother trying to predict the bed
+
+            optimizer.zero_grad(set_to_none=True)
 
             with torch.amp.autocast("cuda"):
-
                 pred = model(x)
-
                 loss = l1_loss(pred, y)
 
             scaler.scale(loss).backward()
@@ -124,21 +181,17 @@ def main():
             scaler.update()
 
             epoch_loss += loss.item()
-
             pbar.set_description(f"loss {loss.item():.4f}")
 
         avg_train_loss = epoch_loss / len(loader)
-
         scheduler.step()
 
-        # release gradient memory from batch - dante
-        optimizer.zero_grad(set_to_none=True) 
-        # delete tensors from training loop
-        del x, y, mask, pred, loss 
-        # clear cache to avoid fragmentation errors in validation
-        torch.cuda.empty_cache() 
+        # Release gradient memory
+        optimizer.zero_grad(set_to_none=True)
+        del x, y, mask, pred, loss
+        torch.cuda.empty_cache()
 
-        # validation
+        # Validation
         model.eval()
         val_loss = 0
         with torch.no_grad():
@@ -146,7 +199,7 @@ def main():
                 x    = batch["input"].to(device)
                 y    = batch["ct"].to(device)
                 mask = batch["prediction_mask"].bool().to(device)
-                y[~mask] = 0 # don't bother trying to predict the bed 
+                y[~mask] = 0
 
                 with torch.amp.autocast("cuda"):
                     pred = model(x)
@@ -159,30 +212,35 @@ def main():
         train_loss_history.append(avg_train_loss)
         val_loss_history.append(avg_val_loss)
 
-        # best checkpoint (by val)
+        # Best checkpoint — weights only (used for inference)
         if avg_val_loss < best_val_loss:
-
             best_val_loss = avg_val_loss
-
             torch.save(
                 model.state_dict(),
-                f"{out}/checkpoints/best_model.pth"
+                f"{out}/checkpoints/best_model.pth",
             )
 
-        # last checkpoint
+        # Last checkpoint — full training state for resuming
         torch.save(
-            model.state_dict(),
-            f"{out}/checkpoints/last_model.pth"
+            {
+                "epoch":     epoch,
+                "model":     model.state_dict(),
+                "optimizer": optimizer.state_dict(),
+                "scheduler": scheduler.state_dict(),
+                "scaler":    scaler.state_dict(),
+            },
+            last_ckpt_path,
         )
 
-        # log
-        with open(f"{out}/logs/train_log.txt", "a") as f:
+        # Append to log
+        with open(log_path, "a") as f:
             f.write(f"{epoch},{avg_train_loss},{avg_val_loss}\n")
 
-        # plot loss
+        # Plot loss (x-axis reflects true epoch numbers)
+        epochs_so_far = list(range(len(train_loss_history)))
         plt.figure()
-        plt.plot(train_loss_history, label="train")
-        plt.plot(val_loss_history, label="val")
+        plt.plot(epochs_so_far, train_loss_history, label="train")
+        plt.plot(epochs_so_far, val_loss_history,   label="val")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.title("Train / Val Loss")
@@ -192,7 +250,7 @@ def main():
 
 
 if __name__ == "__main__":
-    os.chdir(os.path.dirname(__file__))  # ensure relative paths work
+    os.chdir(os.path.dirname(__file__))
     print(os.getcwd())
     print("training baseline model - PET only")
     main()
