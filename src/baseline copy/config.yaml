@@ -6,6 +6,72 @@ epochs: 250
 learning_rate: 0.0003
 batch_size: 1
 
-patch_size: [192,192,192]
-train_num_samples: 2 #Number of patches to sample per train subject
-val_num_samples: 8 #Number of patches to sample per val subject
+patch_size: [64,64,64] # smaller patch size for memory - 192x192x192= ~7GB, 128x128x128= ~2GB . dante
+# patch_size: [192, 192, 192]
+train_num_samples: 2   # Number of patches to sample per train subject
+val_num_samples: 8     # Number of patches to sample per val subject
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Input modalities
+# ─────────────────────────────────────────────────────────────────────────────
+# Co-registration notes:
+#   - NAC-PET and all MRI sequences are natively co-registered on a simultaneous
+#     PET/MRI scanner (e.g. Siemens Biograph mMR). No registration step needed.
+#   - The topogram is acquired in CT/localizer geometry and lives in a DIFFERENT
+#     space. Enable it only after offline resampling into PET/MRI FOV (see
+#     transforms.py for details).
+#   -  Use one of chunked MRI (mri_chunk_*) and combined MRI (mri_combined_*) 
+#
+# Each entry requires:
+#   name: key matching get_subject_features() in dataset.py
+#   type: one of  pet | mri | topogram
+#         (used to select the correct normalization strategy below)
+
+input_modalities:
+  - name: nacpet
+    type: pet
+
+  - name: mri_combined_in_phase
+    type: mri
+
+  - name: mri_combined_out_phase
+    type: mri
+
+  # ── Chunked MRI (alternative to combined; pick one set, not both) ──────────
+  # - name: mri_chunk_0_in_phase
+  #   type: mri
+  # - name: mri_chunk_0_out_phase
+  #   type: mri
+  # - name: mri_chunk_1_in_phase
+  #   type: mri
+  # - name: mri_chunk_1_out_phase
+  #   type: mri
+  # - name: mri_chunk_2_in_phase
+  #   type: mri
+  # - name: mri_chunk_2_out_phase
+  #   type: mri
+  # - name: mri_chunk_3_in_phase
+  #   type: mri
+  # - name: mri_chunk_3_out_phase
+  #   type: mri
+
+  # ── Topogram (requires offline resampling to PET/MRI space first) ──────────
+  # - name: topogram
+  #   type: topogram
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Normalization strategies (per modality type)
+# ─────────────────────────────────────────────────────────────────────────────
+# MRI   options  (see transforms.py):  z_score | percentile | histogram
+# PET   options  (see transforms.py):  z_score | suv_scale
+# CT    options  (see transforms.py):  hu_window              (ground truth only)
+# topogram:                            z_score
+#
+# Bias field correction is best run as an offline pre-processing step; it is
+# not applied here but can be inserted into get_mri_normalization() when ready.
+
+normalization:
+  mri: z_score
+  pet: z_score
+  ct: hu_window
+  topogram: z_score
