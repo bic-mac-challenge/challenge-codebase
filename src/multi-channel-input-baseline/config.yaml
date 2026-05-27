@@ -1,6 +1,6 @@
 data_dir: /data/t/BIC-MAC-MICCAI2026/bic-mac-data/train #CHANGE to your dataset path
 num_workers: 1
-output_dir: /data/t/BIC-MAC-MICCAI2026/baseline_model/outputs
+output_dir: /data/t/BIC-MAC-MICCAI2026/baseline_with_2channelMRI/outputs
 
 epochs: 250
 learning_rate: 0.0003
