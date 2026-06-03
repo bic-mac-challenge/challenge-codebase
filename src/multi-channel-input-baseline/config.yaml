@@ -1,6 +1,6 @@
 data_dir: /data/t/BIC-MAC-MICCAI2026/bic-mac-data/train #CHANGE to your dataset path
-num_workers: 1
-output_dir: /data/t/BIC-MAC-MICCAI2026/baseline_with_2channelMRI/outputs
+num_workers: 0
+output_dir: /data/t/BIC-MAC-MICCAI2026/models/baseline_with_2channelMRI/outputs
 
 epochs: 250
 learning_rate: 0.0003
@@ -9,7 +9,7 @@ batch_size: 1
 patch_size: [64,64,64] # smaller patch size for memory - 192x192x192= ~7GB, 128x128x128= ~2GB . dante
 # patch_size: [192, 192, 192]
 train_num_samples: 2   # Number of patches to sample per train subject
-val_num_samples: 8     # Number of patches to sample per val subject
+val_num_samples: 2     # Number of patches to sample per val subject - reduced from 8 to 2 for memory constraints on dante
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Input modalities
@@ -34,8 +34,8 @@ input_modalities:
   - name: mri_combined_in_phase
     type: mri
 
-  - name: mri_combined_out_phase
-    type: mri
+  # - name: mri_combined_out_phase
+  #   type: mri
 
   # ── Chunked MRI (alternative to combined; pick one set, not both) ──────────
   # - name: mri_chunk_0_in_phase

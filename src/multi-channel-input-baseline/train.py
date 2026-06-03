@@ -16,6 +16,7 @@ import torch
 import yaml
 from monai.data import CacheDataset, DataLoader
 from tqdm import tqdm
+import gc
 
 from dataset import get_dataset
 from transforms import get_in_channels, get_transforms
@@ -28,6 +29,25 @@ torch.backends.cudnn.benchmark = True
 def load_config():
     with open("config.yaml") as f:
         return yaml.safe_load(f)
+
+
+def load_log(log_path):
+    """Parse train_log.txt → (train_loss_history, val_loss_history, last_epoch).
+    Returns empty histories and -1 if the file does not exist."""
+    train_losses, val_losses = [], []
+    last_epoch = -1
+    if not os.path.exists(log_path):
+        return train_losses, val_losses, last_epoch
+    with open(log_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            epoch, t_loss, v_loss = line.split(",")
+            train_losses.append(float(t_loss))
+            val_losses.append(float(v_loss))
+            last_epoch = int(epoch)
+    return train_losses, val_losses, last_epoch
 
 
 def main():
@@ -69,7 +89,7 @@ def main():
         shuffle=True,
         num_workers=cfg["num_workers"],
         pin_memory=True,
-        persistent_workers=True,
+        persistent_workers=(cfg["num_workers"] > 0), # True causes memory issues on dante, set to False
     )
 
     print("Caching val dataset...")
@@ -84,8 +104,8 @@ def main():
         batch_size=cfg["batch_size"],
         shuffle=False,
         num_workers=cfg["num_workers"],
-        pin_memory=True,
-        persistent_workers=True,
+        pin_memory=False, # True causes memory issues on dante, set to False
+        persistent_workers=(cfg["num_workers"] > 0), # True causes memory issues on dante, set to False if workers=0
     )
 
     model = build_model(in_channels=in_channels).to(device)
@@ -107,17 +127,63 @@ def main():
     os.makedirs(f"{out}/logs",        exist_ok=True)
     os.makedirs(f"{out}/plots",       exist_ok=True)
 
-    best_val_loss        = float("inf")
-    train_loss_history   = []
-    val_loss_history     = []
+    # ------------------------------------------------------------------ #
+    #  Resume from last checkpoint if one exists                          #
+    # ------------------------------------------------------------------ #
+    last_ckpt_path = f"{out}/checkpoints/last_model.pth"
+    log_path       = f"{out}/logs/train_log.txt"
 
-    print("Starting training...")
+    train_loss_history, val_loss_history, last_epoch = load_log(log_path)
+    best_val_loss = min(val_loss_history) if val_loss_history else float("inf")
+    start_epoch = last_epoch + 1
 
-    for epoch in range(cfg["epochs"]):
+
+    if os.path.exists(last_ckpt_path):
+        print(f"Resuming from checkpoint (epoch {last_epoch}) → {last_ckpt_path}")
+        ckpt = torch.load(last_ckpt_path, map_location=device)
+
+        stored_epoch = ckpt.get("epoch", last_epoch)
+        start_epoch = stored_epoch + 1
+
+        # Support both old format (bare state_dict) and new format (dict)
+        if isinstance(ckpt, dict) and "model" in ckpt:
+            model.load_state_dict(ckpt["model"])
+            optimizer.load_state_dict(ckpt["optimizer"])
+            scheduler.load_state_dict(ckpt["scheduler"])
+            scaler.load_state_dict(ckpt["scaler"])
+            # Sanity-check the stored epoch matches the log
+            stored_epoch = ckpt.get("epoch", last_epoch)
+            if stored_epoch != last_epoch:
+                print(
+                    f"  Warning: checkpoint epoch ({stored_epoch}) differs from "
+                    f"log epoch ({last_epoch}). Using log epoch."
+                )
+        else:
+            # Legacy bare state_dict — load weights only
+            print("  (legacy checkpoint format — loading weights only)")
+            model.load_state_dict(ckpt)
+            # Fast-forward the scheduler to match elapsed epochs
+            for _ in range(start_epoch):
+                scheduler.step()
+    else:
+        print("No checkpoint found — starting from scratch.")
+
+    if start_epoch >= cfg["epochs"]:
+        print(
+            f"Training already complete ({start_epoch} epochs done, "
+            f"target is {cfg['epochs']}). Nothing to do."
+        )
+        return
+    
+
+    print(f"Starting training from epoch {start_epoch} → {cfg['epochs'] - 1}")
+
+    for epoch in range(start_epoch, cfg["epochs"]):
 
         # ── Training ──────────────────────────────────────────
         model.train()
         epoch_loss = 0
+        train_steps = 0
         pbar = tqdm(loader, desc=f"Epoch {epoch:04d}")
 
         for batch in pbar:
@@ -126,24 +192,35 @@ def main():
             mask = batch["prediction_mask"].bool().to(device)
             y[~mask] = 0   # do not penalise predictions outside the body
 
-            optimizer.zero_grad()
+            if not mask.any(): # Skip this batch entirely to avoid NaN
+                continue 
+
+            optimizer.zero_grad(set_to_none=True)
+
             with torch.amp.autocast("cuda"):
                 pred = model(x)
                 loss = l1_loss(pred[mask], y[mask])   # loss only inside mask
 
+            if not torch.isfinite(loss):
+                print(f"Non-finite loss at epoch {epoch}")
+                continue
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
 
+            train_steps += 1
             epoch_loss += loss.item()
             pbar.set_postfix(loss=f"{loss.item():.4f}")
 
-        avg_train_loss = epoch_loss / len(loader)
+        avg_train_loss = (
+            epoch_loss / train_steps if train_steps > 0 else float("nan")
+           )
         scheduler.step()
 
         # clean up memory after each epoch - memory failures when reachingvalidation on dante
         del x, y, mask, pred, loss
         torch.cuda.empty_cache()
+        gc.collect() # free up cpu memory using garbage collection
 
         # ── Validation ────────────────────────────────────────
         model.eval()
@@ -157,10 +234,14 @@ def main():
                 y_batch[~mask_batch] = 0
 
                 # Process sequentially to avoid OOM.
-                for i in range(x_batch.shape[0]): # x_batch.shape is [val_num_samples, channels, depth, height, width] or [8, C, 192, 192, 192] default
+                for i in range(x_batch.shape[0]): # x_batch.shape is [val_num_samples/batch size, channels, depth, height, width] or [8, C, 192, 192, 192] default
                     x = x_batch[i:i+1].to(device) 
                     y = y_batch[i:i+1].to(device)
                     mask = mask_batch[i:i+1].to(device)
+
+                    if not mask.any():
+                        del x, y, mask
+                        continue
 
                     with torch.amp.autocast("cuda"):
                         pred = model(x)
@@ -170,10 +251,13 @@ def main():
             
                     # delete patch tensors to free up memory before processing the next patch
                     del x, y, mask, pred, loss
+                
+                del x_batch, y_batch, mask_batch
+                gc.collect()
 
 
 
-        avg_val_loss = val_loss / val_steps
+        avg_val_loss = val_loss / val_steps if val_steps > 0 else float("nan") # avoid division by 0 nan
         # avg_val_loss = val_loss / len(val_loader)
         print(f"Epoch {epoch:04d}  train={avg_train_loss:.4f}  val={avg_val_loss:.4f}")
 
@@ -188,15 +272,25 @@ def main():
             best_val_loss = avg_val_loss
             torch.save(model.state_dict(), f"{out}/checkpoints/best_model.pth")
 
-        torch.save(model.state_dict(), f"{out}/checkpoints/last_model.pth")
+        torch.save({
+                "epoch":     epoch,
+                "model":     model.state_dict(),
+                "optimizer": optimizer.state_dict(),
+                "scheduler": scheduler.state_dict(),
+                "scaler":    scaler.state_dict(),
+            },
+            last_ckpt_path,
+        )
 
         # ── Logging ───────────────────────────────────────────
         with open(f"{out}/logs/train_log.txt", "a") as f:
             f.write(f"{epoch},{avg_train_loss:.6f},{avg_val_loss:.6f}\n")
 
+        epochs_so_far = list(range(len(train_loss_history)))
+
         plt.figure()
-        plt.plot(train_loss_history, label="train")
-        plt.plot(val_loss_history,   label="val")
+        plt.plot(epochs_so_far, train_loss_history, label="train")
+        plt.plot(epochs_so_far, val_loss_history,   label="val")
         plt.xlabel("Epoch")
         plt.ylabel("L1 Loss (masked)")
         plt.title("Train / Val Loss")
