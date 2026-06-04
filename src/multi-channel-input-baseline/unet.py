@@ -85,7 +85,7 @@ class UNet3D(nn.Module):
         self,
         in_channels:   int = 1,
         out_channels:  int = 1,
-        base_features: int = 16,
+        base_features: int = 32,
     ):
         super().__init__()
         f = base_features
