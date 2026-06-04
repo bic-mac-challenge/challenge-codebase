@@ -127,7 +127,7 @@ class UNet3D(nn.Module):
 # Builder  –  single entry point used by train.py and predict.py
 # ─────────────────────────────────────────────────────────────────────────────
 
-def build_model(in_channels: int = 1, out_channels: int = 1) -> UNet3D:
+def build_model(in_channels: int = 1, out_channels: int = 1, base_features: int = 32) -> UNet3D:
     """
     Instantiate the model.
 
@@ -139,4 +139,4 @@ def build_model(in_channels: int = 1, out_channels: int = 1) -> UNet3D:
     To swap in a different architecture in the future, replace UNet3D here
     while keeping the same function signature.
     """
-    return UNet3D(in_channels=in_channels, out_channels=out_channels)
+    return UNet3D(in_channels=in_channels, out_channels=out_channels, base_features=base_features)

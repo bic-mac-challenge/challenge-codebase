@@ -53,7 +53,7 @@ def predict(features_dir: str, out_path: str, model_path: str | None = None):
     if model_path is None:
         model_path = Path(__file__).parent / "outputs/checkpoints/best_model.pth"
 
-    model = build_model(in_channels=in_channels).to(device)
+    model = build_model(in_channels=in_channels, base_features=16).to(device)
     model.load_state_dict(
         torch.load(model_path, map_location=device, weights_only=True)
     )
@@ -106,5 +106,4 @@ if __name__ == "__main__":
         help="Path to model checkpoint (default: outputs/checkpoints/best_model.pth)",
     )
     args = parser.parse_args()
-
     predict(args.features_dir, args.output_ct, args.model_path)
