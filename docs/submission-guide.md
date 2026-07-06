@@ -70,7 +70,7 @@ See [docker-packaging.md](docker-packaging.md) for how to build and test your co
 
 ### How to submit
 
-Email **bic-mac-challenge@github.io** with subject line `[DRY-RUN] <TeamName>` and include:
+Email **bic-mac-challenge@outlook.com** with subject line `[DRY-RUN] <TeamName>` and include:
 - Team name, Docker image name and tag
 - A link to your image using **one** of the options below
 
@@ -104,7 +104,7 @@ Results and winner announcements: **September 1, 2026**.
 
 ### How to submit
 
-Same as the dry run — email your container to **bic-mac-challenge@github.io** with subject `[FINAL] <TeamName>`, using Docker Hub or a compressed archive with a file sharing link. Make sure to also include a link to a short methedology paper describing your approach. This methedology paper must be uploaded to a public repository and it is a requirement to be considered eligeble for prizes. 
+Same as the dry run — email your container to **bic-mac-challenge@outlook.com** with subject `[FINAL] <TeamName>`, using Docker Hub or a compressed archive with a file sharing link. Make sure to also include a link to a short methedology paper describing your approach. This methedology paper must be uploaded to a public repository and it is a requirement to be considered eligeble for prizes. 
 
 ---
 
