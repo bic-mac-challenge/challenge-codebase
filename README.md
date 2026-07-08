@@ -8,7 +8,7 @@
 
 ---
 ## Updates
-- **July 8, 2026: [CHANGE]**: The fifth metric, TAC-Bias, has been removed from the final evaluation. Final submissions are scored on the four metrics defined in [Evaluation](#evaluation-srcevaluation). Please see PR #23 for details.
+- **July 8, 2026: [CHANGE]**: The fifth metric, TAC-Bias, has been removed from the final evaluation. Final submissions are scored on the four metrics defined in [Evaluation](#evaluation-srcevaluation). Please see [PR #23](https://github.com/bic-mac-challenge/challenge-codebase/pull/23) for details.
 - **July 6, 2026: [BUG FIX]**: DRY-RUN and FINAL submission instructions listed a wrong email. All DRY-RUN and FINAL submissions should be sent to bic-mac-challenge@outlook.com. 
 - **May 15, 2026: [ANNOUNCEMENT]**: NIfTI validation and leaderboards now live - see submission instructions at [https://www.codabench.org/competitions/12555](https://www.codabench.org/competitions/12555)
 - **April 8, 2026 (13:00 GMT+2)**: [BUG FIX] A bug in the Carney HU-to-MU conversion formula has been fixed. Please make sure to run `docker pull ghcr.io/bic-mac-challenge/recon:latest` and `git pull` for updated recon and evaluation logic. The 8 ground truth PET train images have been updated on huggingface. 
@@ -187,7 +187,7 @@ The reconstructed PET is written to `/data/output/pet.nii.gz`.
 ## 📊 Evaluation (`src/evaluation/`)
 
 > [!IMPORTANT]
-> The fifth metric `TAC Bias` has been removed from the final evaluation, please see announcement and PR #23. 
+> The fifth metric `TAC Bias` has been removed from the final evaluation, please see announcement and [PR #23](https://github.com/bic-mac-challenge/challenge-codebase/pull/23). 
 
 Four metrics compare predicted PET and CT outputs against the ground truth:
 
