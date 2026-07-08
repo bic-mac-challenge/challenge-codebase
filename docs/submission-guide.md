@@ -12,6 +12,7 @@ This guide explains how to submit predictions at each phase of the BIC-MAC Chall
 | **Dry Run** | May 15 – Aug 15 | Docker container via email | CT metrics on the 4 validation subjects (or error logs if the container failed) |
 | **Final Test** | June 15 - Aug 15 | Docker container via email | Full evaluation on the unseen test set (September 1) |
 | **Methodology Paper** | June 15 - Aug 21 | Submit a short methodology paper describing your solution | |
+
 Validation and Dry Run run **concurrently** throughout the challenge. Use them to iterate on your model before the final deadline. There is no limit on submissions during either phase.
 
 
