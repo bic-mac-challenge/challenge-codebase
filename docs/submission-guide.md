@@ -11,8 +11,10 @@ This guide explains how to submit predictions at each phase of the BIC-MAC Chall
 | **Validation** | May 15 – Aug 15 | Zip of NIfTI predictions uploaded to Codabench | All metrics on the 4 validation subjects |
 | **Dry Run** | May 15 – Aug 15 | Docker container via email | CT metrics on the 4 validation subjects (or error logs if the container failed) |
 | **Final Test** | June 15 - Aug 15 | Docker container via email | Full evaluation on the unseen test set (September 1) |
+| **Methodology Paper** | June 15 - Aug 21 | Submit a short methodology paper describing your solution | |
 
 Validation and Dry Run run **concurrently** throughout the challenge. Use them to iterate on your model before the final deadline. There is no limit on submissions during either phase.
+
 
 ---
 
@@ -91,7 +93,7 @@ Dry Run submissions are limited to two per month per team.
 
 ---
 
-## Phase 3: Final Test
+## Phase 3: Final Test and Methodology paper
 
 Submit your Docker container by **August 15, 2026**. The container does not need to be the same as the one used for the dry run — you can continue to improve your model right up to the deadline.
 
@@ -100,7 +102,10 @@ We will:
 2. Run the full reconstruction pipeline on each pseudo-CT
 3. Evaluate all metrics against ground-truth CT and PET
 
+Upload a short methodology paper to a public repository of your choosing by **August 21, 2026**. The paper need not be long or detailed but should outline your technical approach, experiments, and preliminary results. The paper does not influence the scoring of your submission but is required for your submission to be eligible. As inspiration, here are two examples from other MICCAI challenges: https://arxiv.org/pdf/2509.02585 https://arxiv.org/pdf/2309.13747.
+
 Results and winner announcements: **September 1, 2026**.
+
 
 ### How to submit
 
