@@ -42,30 +42,3 @@ def compute_auc_of_K(k_values):
     Analytically, AUC = mean(k_values), since ∫₀¹ I(k > x) dx = k for k ∈ [0, 1].
     """
     return np.mean(k_values)
-
-
-# =========================================================
-# TAC Utilities
-# =========================================================
-
-def integrate_tac(tac, frame_durations):
-    """
-    Compute time-integrated activity (AUC).
-    """
-    return np.sum(tac * frame_durations)
-
-
-def compute_region_auc(pet_4d, mask, frame_durations):
-    """
-    Compute integrated TAC (AUC) for one region.
-    """
-
-    T = pet_4d.shape[-1]
-    tac = []
-
-    for t in range(T):
-        tac.append(np.mean(pet_4d[..., t][mask]))
-
-    tac = np.array(tac)
-
-    return integrate_tac(tac, frame_durations)

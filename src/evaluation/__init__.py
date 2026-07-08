@@ -8,7 +8,6 @@ Metrics:
 - Whole-body SUV MAE
 - Brain outlier robustness score
 - Organ bias
-- TAC bias
 """
 
 from .eval_dataset import evaluate_dataset
@@ -17,6 +16,5 @@ from .metrics import (
     compute_whole_body_suv_mae,
     compute_brain_outlier_score,
     compute_organ_bias,
-    compute_tac_bias,
     compute_whole_body_mu_mae,
 )

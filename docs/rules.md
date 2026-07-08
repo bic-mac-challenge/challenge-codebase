@@ -55,7 +55,7 @@ Participating teams may publish their own results independently, subject to a **
 
 Performance is ranked using a rank-based aggregation across five evaluation metrics. Each metric is averaged across all test cases, submissions are ranked per metric (1 = best), and the final score is the mean of the five metric ranks. The lowest final score wins.
 
-Please see [src/evaluation/README.md](src/evaluation/README.md) for definitions of each metric. Note that fifth metric, TAC-bias, cannot be computed locally. It is used only for the final evaluation.
+Please see [src/evaluation/README.md](src/evaluation/README.md) for definitions of each metric.
 
 In the event of a tied aggregated rank, teams share the corresponding placement following Olympic-style conventions (e.g., two first places, no second place, then third place). Prize money is split equally between tied teams.
 
