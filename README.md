@@ -8,10 +8,11 @@
 
 ---
 ## Updates
-- July 6, 2026: BUG FIX: DRY-RUN and FINAL submission instructions listed a wrong email. All DRY-RUN and FINAL submissions should be sent to bic-mac-challenge@outlook.com. 
-- May 15, 2026: NIfTI validation and leaderboards now live - see submission instructions at [https://www.codabench.org/competitions/12555](https://www.codabench.org/competitions/12555)
-- April 8, 2026 (13:00 GMT+2): [BUG FIX] A bug in the Carney HU-to-MU conversion formula has been fixed. Please make sure to run `docker pull ghcr.io/bic-mac-challenge/recon:latest` and `git pull` for updated recon and evaluation logic. The 8 ground truth PET train images have been updated on huggingface. 
-- April 7, 2026: [NEW DATA POLICY] The use of public datasets for pretraining and other use-cases is now allowed under certain conditions. Please see [docs/rules.md](docs/rules.md) for details. 
+- **July 8, 2026: [CHANGE]**: The fifth metric, TAC-Bias, has been removed from the final evaluation. Final submissions are scored on the four metrics defined in [Evaluation](#evaluation-srcevaluation). Please see PR for details.
+- **July 6, 2026: [BUG FIX]**: DRY-RUN and FINAL submission instructions listed a wrong email. All DRY-RUN and FINAL submissions should be sent to bic-mac-challenge@outlook.com. 
+- **May 15, 2026: [ANNOUNCEMENT]**: NIfTI validation and leaderboards now live - see submission instructions at [https://www.codabench.org/competitions/12555](https://www.codabench.org/competitions/12555)
+- **April 8, 2026 (13:00 GMT+2)**: [BUG FIX] A bug in the Carney HU-to-MU conversion formula has been fixed. Please make sure to run `docker pull ghcr.io/bic-mac-challenge/recon:latest` and `git pull` for updated recon and evaluation logic. The 8 ground truth PET train images have been updated on huggingface. 
+- **April 7, 2026: [NEW DATA POLICY]**: The use of public datasets for pretraining and other use-cases is now allowed under certain conditions. Please see [docs/rules.md](docs/rules.md) for details. 
 ## Table of Contents
 
 - [Overview](#overview)
@@ -185,7 +186,10 @@ The reconstructed PET is written to `/data/output/pet.nii.gz`.
 
 ## 📊 Evaluation (`src/evaluation/`)
 
-Five metrics compare predicted PET and CT outputs against the ground truth:
+> [!IMPORTANT]
+> The fifth metric `TAC Bias` has been removed from the final evaluation, please see announcement and PR. 
+
+Four metrics compare predicted PET and CT outputs against the ground truth:
 
 | Metric | Modality | Description | Region |
 |--------|------|-------------|--------|
@@ -193,7 +197,6 @@ Five metrics compare predicted PET and CT outputs against the ground truth:
 | Brain Outlier Score | `PET` | AUC of fraction of brain voxels within relative error thresholds (5%, 10%, 15%) [Ladefoged 2017 (fig. 8)](https://www.sciencedirect.com/science/article/pii/S1053811916307170)| Brain |
 | Organ Bias | `PET` | Mean absolute relative error of mean SUV in 8 organs: brain, liver, spleen, heart, pancreas, muscle, adipose, extremities | TotalSegmentator organ labels |
 | CT MU MAE | `CT` | Mean absolute error of attenuation coefficients (μ at 511 keV) between predicted and ground-truth CT after HU→μ conversion | Body mask, excluding ±4 cm axial slices at top of liver|
-| TAC Bias | `Dynamic PET` | Absolute relative error of the integral of time-activity-curves (TACs) for the aorta and selected brain regions. NOTE: Metric is computed only for the final test set due to the size of the dynamic sinograms. | Brain regions and aorta|
 
 **Evaluate a single subject:**
 

@@ -121,7 +121,7 @@ Check `output_dir/intermediates/recon.log` for the full STIR log. Rerun with `VE
 
 **Which metrics are reported on the validation leaderboard?**
 
-Four metrics in total: Whole-body SUV MAE, Brain Outlier Score, Organ Bias, and CT μ-MAE. See the evaluation section of the main README for descriptions. The Brain Outlier Score is a dataset-level metric — it cannot be computed for a single subject. The fifth and final metric "TAC Bias" is only computed for the final test set. The metric calculation requires reconstruction using dynamic sinograms, which are unfortunately too large to share. 
+Four metrics in total: Whole-body SUV MAE, Brain Outlier Score, Organ Bias, and CT μ-MAE. See the evaluation section of the main README for descriptions. The Brain Outlier Score is a dataset-level metric — it cannot be computed for a single subject.
 
 **Can I evaluate without running reconstruction?**
 
