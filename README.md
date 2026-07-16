@@ -1,5 +1,8 @@
 # BIC-MAC Challenge Codebase
 
+> [!WARNING]
+> A bug in the SUV MAE metric was discovered and has now been fixed (please see Update below from July 16). The function has also been fixed in the automatic CodaBench validation, so we advise everyone that has made PET submissions to press "resubmit" to get the updated and correct metrics.
+
 **Big Cross-Modal Attenuation Correction** — synthesize pseudo-CT from multi-modal PET/MRI input to enable CT-less PET reconstruction.
 
 🏆 [Challenge website](https://bic-mac-challenge.github.io/)
