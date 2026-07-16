@@ -54,8 +54,10 @@ submission.zip
     ├── ct.nii.gz
     └── pet.nii.gz   # optional
 ```
+> [!IMPORTANT]
+> Make sure the zip file contains exactly four subject folders (sub-004, sub-009 , sub-010, and sub-018) at the *root* level (verify with `unzip -l my_submission.zip`)
 
-Upload to the [Codabench competition page](https://www.codabench.org/competitions/12555/#/participate-tab).
+Upload the zip to the [Codabench competition page](https://www.codabench.org/competitions/12555/#/participate-tab).
 
 ---
 
