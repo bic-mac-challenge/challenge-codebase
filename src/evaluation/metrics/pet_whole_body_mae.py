@@ -48,7 +48,10 @@ def compute_whole_body_suv_mae(
     slice_thickness_mm = nib.load(pred_pet_path).header.get_zooms()[2]
     exclusion_slices = int(round((exclusion_cm * 10.0) / slice_thickness_mm))
 
-    superior_slice = np.max(np.where(liver_mask)[2])
+    # PET's z-axis (STIR-resampled, ring spacing 3.29114 mm) is stored in the
+    # opposite direction from the CT grid: index increases toward inferior,
+    # so the superior-most liver voxel is the *smallest* index here.
+    superior_slice = np.min(np.where(liver_mask)[2])
 
     z_min = max(0, superior_slice - exclusion_slices)
     z_max = min(pred.shape[2], superior_slice + exclusion_slices)
