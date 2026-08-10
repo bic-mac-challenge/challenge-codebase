@@ -11,6 +11,7 @@
 
 ---
 ## Updates
+- **August 10, 2026 [CLARIFICATION]**: Rule and submission docs clarification regarding [FINAL] submissions. Two [FINAL] submissions can be made to allow fixing timeouts or runtime errors of the first submission. Only runtime success is reported back and not the metric scores. 
 - **July 17, 2026 [LEADERBOARD]**: The leaderboard is now sorted by the average rank of the four metrics, adhering to the final evaluation scheme. Note that one must manually choose (add/delete) the submission that should be shown on the leaderboard, since the previous `force_best` policy does not work for dynamically computed scores such as Average Rank. 
 - **July 16, 2026: [BUG FIX]**: The Whole-body SUV MAE metric excluded the wrong end of the liver: PET's z-axis runs in the opposite direction from CT's, so the superior-most liver slice was located incorrectly, shifting the ±4 cm exclusion band off the top of the liver. Please `git pull` for the corrected evaluation logic. Please see [PR #28](https://github.com/bic-mac-challenge/challenge-codebase/pull/28) for details.
 - **July 8, 2026: [CHANGE]**: The fifth metric, TAC-Bias, has been removed from the final evaluation. Final submissions are scored on the four metrics defined in [Evaluation](#evaluation-srcevaluation). Please see [PR #23](https://github.com/bic-mac-challenge/challenge-codebase/pull/23) for details.

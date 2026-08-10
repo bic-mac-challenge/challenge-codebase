@@ -104,6 +104,9 @@ We will:
 2. Run the full reconstruction pipeline on each pseudo-CT
 3. Evaluate all metrics against ground-truth CT and PET
 
+Each team is permitted **two** Docker submission on the unseen test set, with only the most recent submission used for the final scoring. Metrics for the final submissions are **not** reported until after the challenge has ended, and thus a second submission should be done only if errors were encountered during the first submission. If a submission fails on some or all test cases, the team will be notified and failed predictions will be replaced with outputs from the baseline U-Net model.
+
+
 Upload a short methodology paper to a public repository of your choosing by **August 21, 2026**. The paper need not be long or detailed but should outline your technical approach, experiments, and preliminary results. The paper does not influence the scoring of your submission but is required for your submission to be eligible. As inspiration, here are two examples from other MICCAI challenges: https://arxiv.org/pdf/2509.02585 https://arxiv.org/pdf/2309.13747.
 
 Results and winner announcements: **September 1, 2026**.

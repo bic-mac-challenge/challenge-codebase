@@ -20,7 +20,7 @@ This document describes the rules governing participation in the Big Cross-Modal
 
 **Dry-run (Docker container via email):** up to 2 submissions per month per team starting May 15. The organizers will verify that the container runs, respects hardware and time constraints, and produces correctly dimensioned output. The Dry-run is performed on the validation set. 
 
-**Final test submission (Docker container via email):** each team is permitted **one** successful Docker submission on the unseen test set. If a submission fails on some or all test cases, the team will be notified and failed predictions will be replaced with outputs from the baseline U-Net model. Each team may submit up to **twice** for the final evaluation, with only the most recent submission used for scoring.
+**Final test submission (Docker container via email):** each team is permitted **two** Docker submission on the unseen test set, with only the most recent submission used for the final scoring. Metrics for the final submissions are **not** reported until after the challenge has ended, and thus a second submission should be done only if errors were encountered during the first submission. If a submission fails on some or all test cases, the team will be notified and failed predictions will be replaced with outputs from the baseline U-Net model. 
 
 ---
 
