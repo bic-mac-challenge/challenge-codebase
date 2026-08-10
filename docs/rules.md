@@ -42,8 +42,7 @@ Your container must read from `/data/features/` (mounted read-only) and write `c
 
 ## Methodology Paper Requirement
 
-Each team must prepare a short methodology paper describing the technical approach underlying their submission. This paper must be uploaded to a public repository (e.g., arXiv) and included with the final submission email alongside the Docker container. 
-
+Each team must prepare a short methodology paper describing the technical approach underlying their submission. This paper must be uploaded to a public repository (e.g., arXiv) and sent to bic-mac-challenge@outlook.com by August 21st.
 
 ## Publication Embargo
 
