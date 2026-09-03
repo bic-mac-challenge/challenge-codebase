@@ -1,7 +1,7 @@
 # BIC-MAC Challenge Codebase
 
 > [!NOTE]
-> The challenge has concluded and results will be released soon.
+> The challenge has concluded! Please se the [Challenge website](https://bic-mac-challenge.github.io/) for the final leaderboards. Methodology papers from the participating teams can be [found here](./results/papers.md). 
 
 **Big Cross-Modal Attenuation Correction** — synthesize pseudo-CT from multi-modal PET/MRI input to enable CT-less PET reconstruction.
 
